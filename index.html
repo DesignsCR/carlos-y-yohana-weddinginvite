@@ -67,10 +67,10 @@
     .envelope-wrap{width:min(92vw,390px);perspective:1000px}
     .envelope{position:relative;width:100%;aspect-ratio:1.28/1;background:#d8c8b1;border-radius:8px;box-shadow:var(--shadow);overflow:visible}
     .envelope:before,.envelope:after{content:"";position:absolute;inset:0}
-    .envelope:before{clip-path:polygon(0 0,50% 56%,100% 0);background:#e6d8c4;transform-origin:top;transition:transform 1s cubic-bezier(.2,.75,.25,1);z-index:5}
+    .envelope:before{clip-path:polygon(0 0,50% 56%,100% 0);background:#e6d8c4;transform-origin:top;transition:transform 1.6s cubic-bezier(.2,.75,.25,1);z-index:5}
     .envelope:after{clip-path:polygon(0 100%,0 0,50% 56%,100% 0,100% 100%);background:linear-gradient(135deg,#d4c2aa,#e1d2bd);z-index:4}
     .envelope.open:before{transform:rotateX(180deg);z-index:1}
-    .card{position:absolute;left:7%;right:7%;bottom:7%;height:84%;background:var(--ivory);z-index:3;display:flex;align-items:center;justify-content:center;padding:20px;transition:transform 1s .28s cubic-bezier(.2,.75,.25,1),box-shadow .8s}
+    .card{position:absolute;left:7%;right:7%;bottom:7%;height:84%;background:var(--ivory);z-index:3;display:flex;align-items:center;justify-content:center;padding:20px;transition:transform 1.7s .55s cubic-bezier(.2,.75,.25,1),box-shadow 1s}
     .envelope.open .card{transform:translateY(-52%);box-shadow:0 14px 30px rgba(36,47,51,.16)}
     .seal{position:absolute;left:50%;top:53%;transform:translate(-50%,-50%);z-index:7;width:62px;height:62px;border-radius:50%;background:var(--navy);color:var(--ivory);display:grid;place-items:center;font-family:Georgia,serif;font-size:18px;box-shadow:0 6px 14px rgba(0,0,0,.18);transition:opacity .3s}
     .envelope.open .seal{opacity:0}
@@ -97,6 +97,8 @@
     .hidden{display:none!important}
 
     .surprise{position:relative;overflow:hidden}
+    .reception-page{align-items:flex-start;padding-top:max(28px,env(safe-area-inset-top));}
+    .reception-page .content{margin:0 auto auto;}
     .surprise:before,.surprise:after{content:"✦";position:absolute;color:rgba(183,154,99,.35);font-size:30px;animation:float 3s ease-in-out infinite}
     .surprise:before{top:12%;left:10%}.surprise:after{right:12%;bottom:15%;animation-delay:1.2s}
     @keyframes float{50%{transform:translateY(-8px) rotate(12deg)}}
@@ -175,8 +177,8 @@
       <div class="cardbox" style="margin-top:25px">
         <div class="info-row"><div class="label">Fecha</div><div class="value">Sábado 12 de diciembre de 2026</div></div>
         <div class="info-row"><div class="label">Hora</div><div class="value">1:30 p. m.</div></div>
-        <div class="info-row"><div class="label">Después</div><div class="value">La celebración continúa al finalizar la ceremonia</div></div>
       </div>
+      <a class="btn secondary" id="ceremonyWaze" href="#" target="_blank" rel="noopener">Abrir ceremonia en Waze</a>
       <p class="small" style="margin-top:18px">Guarda un poquito de curiosidad. Más adelante hay una sorpresa.</p>
     </div>
   </section>
@@ -202,11 +204,7 @@
           <button class="btn secondary backRsvp">Regresar</button>
         </div>
 
-        <div id="rsvpNo" class="hidden">
-          <p class="copy">Los tendremos presentes en este día tan especial. Gracias por hacernos saber.</p>
-          <button id="confirmNo" class="btn primary">Confirmar respuesta</button>
-          <button class="btn secondary backRsvp">Regresar</button>
-        </div>
+        <div id="rsvpNo" class="hidden"></div>
       </div>
 
       <div id="rsvpClosed" class="closed hidden">
@@ -226,10 +224,11 @@
       <div class="line"></div>
       <p id="surprisePrompt" class="copy">Y todavía tenemos algo más que compartir contigo…</p>
       <button id="seeSurprise" class="btn primary">Descubrir sorpresa</button>
+      <button id="changeRsvp" class="btn secondary hidden">Cambiar mi respuesta</button>
     </div>
   </section>
 
-  <section class="page sage surprise" data-page="6">
+  <section class="page sage surprise reception-page" data-page="6">
     <div class="content">
       <p class="eyebrow">La celebración continúa</p>
       <h2>Nos vemos después de la ceremonia</h2>
@@ -265,6 +264,7 @@
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbxtwU3QjlyIn5IxAsc7Dclqt2z7n9-qeWHSPvIyqSWtyqylCzx4keRWJ53ujnvB__e5fQ/exec';
 const WEDDING_DATE = new Date('2026-12-12T13:30:00-06:00');
+const CEREMONY_WAZE = 'https://waze.com/ul/hd1u0y7fbs';
 const RECEPTION_UNLOCK = new Date('2026-12-12T14:10:00-06:00');
 
 let invitation = null;
@@ -273,6 +273,9 @@ let current = 0;
 let maxPage = 4;
 let touchX = 0, touchY = 0;
 const pages = [...document.querySelectorAll('.page')];
+
+const ceremonyWaze = document.getElementById('ceremonyWaze');
+if(CEREMONY_WAZE){ ceremonyWaze.href=CEREMONY_WAZE; } else { ceremonyWaze.classList.add('hidden'); }
 
 function codeFromUrl(){
   return (new URLSearchParams(location.search).get('id') || '').trim().toUpperCase();
@@ -332,21 +335,29 @@ function applyStatus(){
   }
 }
 function unlockPostRsvp(answer,message){
-  maxPage = 6;
-  document.getElementById('finalTitle').textContent = answer === 'si' ? '¡Nos vemos en la boda!' : 'Gracias por hacernos saber';
-  document.getElementById('finalMessage').textContent = message;
-  if(answer !== 'si'){
-    document.getElementById('surprisePrompt').textContent = 'La invitación seguirá aquí para ustedes, con mucho cariño.';
-    document.getElementById('seeSurprise').classList.add('hidden');
-  }else{
+  const changeBtn=document.getElementById('changeRsvp');
+  if(answer === 'si'){
+    maxPage = 6;
+    document.getElementById('finalTitle').textContent = '¡Nos vemos en la boda!';
+    document.getElementById('finalMessage').textContent = message || '¡Qué alegría saber que nos acompañarán! Estamos muy felices de poder compartir este día tan especial con ustedes.';
     document.getElementById('surprisePrompt').textContent = 'Y todavía tenemos algo más que compartir con ustedes…';
     document.getElementById('seeSurprise').classList.remove('hidden');
+    changeBtn.classList.add('hidden');
+  }else{
+    maxPage = 5;
+    document.getElementById('finalTitle').textContent = 'Gracias por hacernos saber';
+    document.getElementById('finalMessage').textContent = 'Gracias por avisarnos. Esperamos poder celebrar juntos en otra ocasión.';
+    document.getElementById('surprisePrompt').textContent = rsvpOpen
+      ? 'Si cambian de opinión, tienen hasta el 15 de octubre para confirmar nuevamente desde esta misma invitación, sin necesidad de avisar a los novios.'
+      : 'Gracias por acompañarnos con su cariño, aun desde la distancia.';
+    document.getElementById('seeSurprise').classList.add('hidden');
+    changeBtn.classList.toggle('hidden', !rsvpOpen);
   }
   createDots();
 }
 function openEnvelope(){
   document.getElementById('envelope').classList.add('open');
-  setTimeout(()=>go(1),1150);
+  setTimeout(()=>go(1),2400);
 }
 function go(n){
   n=Math.max(0,Math.min(n,maxPage));
@@ -429,9 +440,8 @@ document.getElementById('yesStart').onclick=()=>{
   document.getElementById('rsvpChoice').classList.add('hidden');
   document.getElementById('rsvpYes').classList.remove('hidden');
 };
-document.getElementById('noStart').onclick=()=>{
-  document.getElementById('rsvpChoice').classList.add('hidden');
-  document.getElementById('rsvpNo').classList.remove('hidden');
+document.getElementById('noStart').onclick=function(){
+  saveRsvp('no',[],this);
 };
 document.querySelectorAll('.backRsvp').forEach(b=>b.onclick=resetRsvp);
 document.getElementById('confirmYes').onclick=function(){
@@ -440,8 +450,14 @@ document.getElementById('confirmYes').onclick=function(){
   document.getElementById('rsvpError').textContent='';
   saveRsvp('si',selected,this);
 };
-document.getElementById('confirmNo').onclick=function(){saveRsvp('no',[],this)};
 document.getElementById('seeSurprise').onclick=()=>go(6);
+document.getElementById('changeRsvp').onclick=()=>{
+  if(!rsvpOpen) return;
+  maxPage=4;
+  resetRsvp();
+  createDots();
+  go(4);
+};
 
 document.getElementById('app').addEventListener('touchstart',e=>{
   touchX=e.changedTouches[0].screenX; touchY=e.changedTouches[0].screenY;
