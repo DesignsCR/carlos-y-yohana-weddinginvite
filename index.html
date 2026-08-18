@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17364a">
+  <title>Carlos & Yohana</title>
+  <style>
+    :root{
+      --navy:#17364a;
+      --navy2:#244c60;
+      --sage:#8d9d88;
+      --sage2:#cbd2c4;
+      --ivory:#fbf8f1;
+      --sand:#e7dcc9;
+      --wood:#9a795f;
+      --gold:#b79a63;
+      --ink:#26343a;
+      --muted:#6d7778;
+      --white:#fff;
+      --shadow:0 18px 50px rgba(24,45,55,.14);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ivory);color:var(--ink)}
+    body{font-family:Arial,Helvetica,sans-serif}
+    button,a{font:inherit}
+    button{cursor:pointer}
+    .app{position:relative;width:100%;height:100dvh;overflow:hidden;background:var(--ivory)}
+    .loading{position:fixed;inset:0;z-index:100;background:var(--ivory);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+    .loading.hide{display:none}
+    .spinner{width:34px;height:34px;border:2px solid var(--sage2);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .page{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;padding:34px 22px 105px;display:flex;align-items:center;justify-content:center;background:var(--ivory);transform:translateX(110%);opacity:0;transition:transform .48s cubic-bezier(.22,.7,.22,1),opacity .35s ease}
+    .page.active{transform:translateX(0);opacity:1;z-index:3}
+    .page.left{transform:translateX(-110%);opacity:0}
+    .page.right{transform:translateX(110%);opacity:0}
+    .page.navy{background:linear-gradient(155deg,var(--navy),#102b3b);color:var(--ivory)}
+    .page.sage{background:linear-gradient(155deg,#e5e9df,var(--ivory))}
+    .page.sand{background:linear-gradient(160deg,#f2eadf,var(--ivory))}
+    .content{width:min(100%,430px);text-align:center;margin:auto}
+    .eyebrow{text-transform:uppercase;letter-spacing:.34em;font-size:11px;color:var(--gold);margin:0 0 18px;font-weight:700}
+    .navy .eyebrow{color:#d8c49b}
+    h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;margin:0;color:var(--navy)}
+    .navy h1,.navy h2{color:var(--ivory)}
+    h1{font-size:clamp(42px,12vw,62px);line-height:.95}
+    h2{font-size:clamp(31px,9vw,44px);line-height:1.06}
+    .amp{font-style:italic;color:var(--gold);font-size:.75em}
+    .copy{font-family:Georgia,"Times New Roman",serif;font-size:18px;line-height:1.65;margin:22px auto 0;max-width:360px;color:#526065}
+    .navy .copy{color:#e9e4da}
+    .line{width:54px;height:1px;background:var(--gold);margin:24px auto}
+    .date{font-family:Georgia,"Times New Roman",serif;font-size:23px;letter-spacing:.13em;color:var(--navy)}
+    .navy .date{color:var(--ivory)}
+    .small{font-size:13px;line-height:1.55;color:var(--muted)}
+    .navy .small{color:#d9dfdd}
+
+    .btn{border:0;border-radius:999px;padding:15px 24px;min-height:52px;width:100%;max-width:340px;margin:12px auto 0;display:block;font-weight:700;letter-spacing:.02em;transition:transform .15s ease,opacity .15s ease}
+    .btn:active{transform:scale(.98)}
+    .primary{background:var(--navy);color:white;box-shadow:0 10px 24px rgba(23,54,74,.2)}
+    .navy .primary{background:var(--ivory);color:var(--navy)}
+    .secondary{background:transparent;color:var(--navy);border:1px solid rgba(23,54,74,.25)}
+    .navy .secondary{color:var(--ivory);border-color:rgba(255,255,255,.35)}
+    .btn:disabled{opacity:.45;cursor:default}
+
+    /* Envelope */
+    .cover{padding:22px;background:linear-gradient(160deg,#efe6d8,var(--ivory))}
+    .envelope-wrap{width:min(92vw,390px);perspective:1000px}
+    .envelope{position:relative;width:100%;aspect-ratio:1.28/1;background:#d8c8b1;border-radius:8px;box-shadow:var(--shadow);overflow:visible}
+    .envelope:before,.envelope:after{content:"";position:absolute;inset:0}
+    .envelope:before{clip-path:polygon(0 0,50% 56%,100% 0);background:#e6d8c4;transform-origin:top;transition:transform 1s cubic-bezier(.2,.75,.25,1);z-index:5}
+    .envelope:after{clip-path:polygon(0 100%,0 0,50% 56%,100% 0,100% 100%);background:linear-gradient(135deg,#d4c2aa,#e1d2bd);z-index:4}
+    .envelope.open:before{transform:rotateX(180deg);z-index:1}
+    .card{position:absolute;left:7%;right:7%;bottom:7%;height:84%;background:var(--ivory);z-index:3;display:flex;align-items:center;justify-content:center;padding:20px;transition:transform 1s .28s cubic-bezier(.2,.75,.25,1),box-shadow .8s}
+    .envelope.open .card{transform:translateY(-52%);box-shadow:0 14px 30px rgba(36,47,51,.16)}
+    .seal{position:absolute;left:50%;top:53%;transform:translate(-50%,-50%);z-index:7;width:62px;height:62px;border-radius:50%;background:var(--navy);color:var(--ivory);display:grid;place-items:center;font-family:Georgia,serif;font-size:18px;box-shadow:0 6px 14px rgba(0,0,0,.18);transition:opacity .3s}
+    .envelope.open .seal{opacity:0}
+    .open-btn{margin-top:74px}
+
+    .family{font-family:Georgia,"Times New Roman",serif;font-size:34px;line-height:1.12;color:var(--navy);margin:8px 0 0}
+    .ornament{font-size:30px;color:var(--sage);margin:18px 0}
+    .cardbox{background:rgba(255,255,255,.72);border:1px solid rgba(154,121,95,.18);border-radius:24px;padding:25px 20px;box-shadow:0 14px 35px rgba(52,60,58,.08);backdrop-filter:blur(8px)}
+    .info-row{padding:14px 0;border-bottom:1px solid rgba(154,121,95,.15)}
+    .info-row:last-child{border:0}
+    .label{text-transform:uppercase;letter-spacing:.2em;font-size:10px;color:var(--wood);font-weight:700;margin-bottom:7px}
+    .value{font-family:Georgia,serif;font-size:20px;color:var(--navy);line-height:1.35}
+
+    .countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:28px 0}
+    .count{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px 4px}
+    .count strong{display:block;font-family:Georgia,serif;font-size:25px;font-weight:400}
+    .count span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.12em;margin-top:5px;color:#d6dedb}
+
+    .choice{display:flex;align-items:center;text-align:left;gap:13px;padding:15px;border:1px solid rgba(23,54,74,.14);border-radius:17px;margin:10px 0;background:rgba(255,255,255,.62)}
+    .choice input{width:21px;height:21px;accent-color:var(--navy);flex:0 0 auto}
+    .choice strong{display:block;color:var(--navy);font-size:15px}
+    .choice span{font-size:12px;color:var(--muted)}
+    .error{min-height:20px;color:#9b4b42;font-size:12px;margin-top:8px}
+    .hidden{display:none!important}
+
+    .surprise{position:relative;overflow:hidden}
+    .surprise:before,.surprise:after{content:"✦";position:absolute;color:rgba(183,154,99,.35);font-size:30px;animation:float 3s ease-in-out infinite}
+    .surprise:before{top:12%;left:10%}.surprise:after{right:12%;bottom:15%;animation-delay:1.2s}
+    @keyframes float{50%{transform:translateY(-8px) rotate(12deg)}}
+    .lock{font-size:34px;margin:15px}
+    .reveal{animation:reveal .8s ease both}
+    @keyframes reveal{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
+
+    .nav{position:fixed;z-index:20;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(transparent,rgba(251,248,241,.96) 30%)}
+    .nav.dark{background:linear-gradient(transparent,rgba(16,43,59,.97) 30%)}
+    .arrow{width:42px;height:42px;border-radius:50%;border:1px solid rgba(23,54,74,.2);background:rgba(255,255,255,.8);color:var(--navy);font-size:25px;display:grid;place-items:center}
+    .nav.dark .arrow{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:white}
+    .dots{display:flex;gap:6px;max-width:210px;overflow:hidden;align-items:center}
+    .dot{width:6px;height:6px;border-radius:50%;border:0;padding:0;background:#b7b8b1;flex:0 0 auto}
+    .dot.active{width:18px;border-radius:6px;background:var(--gold)}
+    .nav.dark .dot{background:rgba(255,255,255,.3)}.nav.dark .dot.active{background:#d8c49b}
+    .status{padding:12px 16px;border-radius:15px;background:#edf0e8;color:#4d604f;font-size:13px;line-height:1.45;margin:18px 0}
+    .closed{padding:18px;border-radius:18px;background:#efe7dc;color:#665a50;margin:20px 0;font-size:14px;line-height:1.55}
+    @media(min-width:700px){body:before{content:"";position:fixed;inset:0;background:#e8e2d8;z-index:-1}.app{max-width:480px;margin:auto;box-shadow:0 0 50px rgba(0,0,0,.12)}}
+  </style>
+</head>
+<body>
+<div id="loading" class="loading"><div class="spinner"></div><div class="small">Preparando tu invitación…</div></div>
+<main id="app" class="app hidden">
+
+  <section class="page cover active" data-page="0">
+    <div class="content">
+      <p class="eyebrow">Nuestra boda</p>
+      <div class="envelope-wrap">
+        <div id="envelope" class="envelope">
+          <div class="card">
+            <div>
+              <div class="small" style="letter-spacing:.25em;text-transform:uppercase">Carlos & Yohana</div>
+              <div class="line"></div>
+              <div class="date">12 · 12 · 2026</div>
+            </div>
+          </div>
+          <div class="seal">C&Y</div>
+        </div>
+      </div>
+      <button id="openInvitation" class="btn primary open-btn">Abrir invitación</button>
+      <div class="small" style="margin-top:13px">También puedes deslizar para comenzar</div>
+    </div>
+  </section>
+
+  <section class="page sage" data-page="1">
+    <div class="content">
+      <p class="eyebrow">Con mucho cariño, para</p>
+      <div id="familyName" class="family"></div>
+      <div class="ornament">❧</div>
+      <p class="copy">Nos llena de alegría invitarlos a compartir con nosotros el comienzo de esta nueva etapa.</p>
+      <div class="line"></div>
+      <p class="copy" style="margin-top:0">Será un día lleno de amor, familia y momentos que queremos guardar para siempre.</p>
+    </div>
+  </section>
+
+  <section class="page navy" data-page="2">
+    <div class="content">
+      <p class="eyebrow">Carlos & Yohana</p>
+      <h1>Carlos <span class="amp">&</span><br>Yohana</h1>
+      <div class="line"></div>
+      <p class="date">12 · 12 · 2026</p>
+      <p class="copy">Hay momentos que se vuelven aún más especiales cuando se comparten con las personas que queremos.</p>
+      <div class="countdown">
+        <div class="count"><strong id="days">00</strong><span>Días</span></div>
+        <div class="count"><strong id="hours">00</strong><span>Horas</span></div>
+        <div class="count"><strong id="minutes">00</strong><span>Min</span></div>
+        <div class="count"><strong id="seconds">00</strong><span>Seg</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page sand" data-page="3">
+    <div class="content">
+      <p class="eyebrow">Ceremonia religiosa</p>
+      <h2>El momento en que diremos “sí”</h2>
+      <div class="cardbox" style="margin-top:25px">
+        <div class="info-row"><div class="label">Fecha</div><div class="value">Sábado 12 de diciembre de 2026</div></div>
+        <div class="info-row"><div class="label">Hora</div><div class="value">1:30 p. m.</div></div>
+        <div class="info-row"><div class="label">Después</div><div class="value">La celebración continúa al finalizar la ceremonia</div></div>
+      </div>
+      <p class="small" style="margin-top:18px">Guarda un poquito de curiosidad. Más adelante hay una sorpresa.</p>
+    </div>
+  </section>
+
+  <section class="page" data-page="4">
+    <div class="content">
+      <p class="eyebrow">Confirmación</p>
+      <h2>¿Nos acompañan?</h2>
+      <p id="deadlineText" class="copy">Nos encantará saber si podremos compartir este día con ustedes.</p>
+
+      <div id="rsvpOpen">
+        <div id="rsvpChoice">
+          <button class="btn primary" id="yesStart">Sí, asistiremos</button>
+          <button class="btn secondary" id="noStart">No podremos asistir</button>
+          <p class="small">Confirma antes del 15 de octubre.</p>
+        </div>
+
+        <div id="rsvpYes" class="hidden">
+          <p class="copy" style="font-size:16px">Selecciona quiénes de los invitados incluidos en esta invitación nos acompañarán:</p>
+          <div id="guestList"></div>
+          <div id="rsvpError" class="error"></div>
+          <button id="confirmYes" class="btn primary">Confirmar asistencia</button>
+          <button class="btn secondary backRsvp">Regresar</button>
+        </div>
+
+        <div id="rsvpNo" class="hidden">
+          <p class="copy">Los tendremos presentes en este día tan especial. Gracias por hacernos saber.</p>
+          <button id="confirmNo" class="btn primary">Confirmar respuesta</button>
+          <button class="btn secondary backRsvp">Regresar</button>
+        </div>
+      </div>
+
+      <div id="rsvpClosed" class="closed hidden">
+        <strong>Las confirmaciones han finalizado.</strong><br>
+        Gracias por ser parte de este momento tan especial para nosotros.
+      </div>
+
+      <div id="existingStatus" class="status hidden"></div>
+    </div>
+  </section>
+
+  <section class="page navy surprise" data-page="5">
+    <div class="content">
+      <p class="eyebrow">Una sorpresa más</p>
+      <h2 id="finalTitle">Gracias por responder</h2>
+      <p id="finalMessage" class="copy"></p>
+      <div class="line"></div>
+      <p id="surprisePrompt" class="copy">Y todavía tenemos algo más que compartir contigo…</p>
+      <button id="seeSurprise" class="btn primary">Descubrir sorpresa</button>
+    </div>
+  </section>
+
+  <section class="page sage surprise" data-page="6">
+    <div class="content">
+      <p class="eyebrow">La celebración continúa</p>
+      <h2>Nos vemos después de la ceremonia</h2>
+      <p class="copy">Hemos preparado un lugar especial para seguir celebrando juntos.</p>
+      <div class="line"></div>
+
+      <div id="receptionLocked" class="cardbox">
+        <div class="lock">♡</div>
+        <div class="label">Un último detalle</div>
+        <p class="copy" style="font-size:16px;margin-top:8px">Queremos guardar un poquito de la sorpresa para ese día.</p>
+        <p class="small">La ubicación estará disponible 40 minutos después de iniciada la ceremonia religiosa.</p>
+      </div>
+
+      <div id="receptionRevealed" class="cardbox reveal hidden">
+        <div class="label">Recepción</div>
+        <div class="value">Salón Casa del Pensionado ADEP</div>
+        <p class="small">San Rafael, Heredia</p>
+        <div class="line"></div>
+        <div class="label">Hora</div>
+        <div class="value">Al terminar la ceremonia religiosa</div>
+        <a class="btn primary" href="https://waze.com/ul/hd1u0ynw87" target="_blank" rel="noopener">Abrir en Waze</a>
+      </div>
+    </div>
+  </section>
+
+  <nav id="nav" class="nav">
+    <button id="prev" class="arrow" aria-label="Anterior">‹</button>
+    <div id="dots" class="dots"></div>
+    <button id="next" class="arrow" aria-label="Siguiente">›</button>
+  </nav>
+</main>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbxtwU3QjlyIn5IxAsc7Dclqt2z7n9-qeWHSPvIyqSWtyqylCzx4keRWJ53ujnvB__e5fQ/exec';
+const WEDDING_DATE = new Date('2026-12-12T13:30:00-06:00');
+const RECEPTION_UNLOCK = new Date('2026-12-12T14:10:00-06:00');
+
+let invitation = null;
+let rsvpOpen = true;
+let current = 0;
+let maxPage = 4;
+let touchX = 0, touchY = 0;
+const pages = [...document.querySelectorAll('.page')];
+
+function codeFromUrl(){
+  return (new URLSearchParams(location.search).get('id') || '').trim().toUpperCase();
+}
+async function loadInvitation(){
+  const code = codeFromUrl();
+  if(!code){ showFatal('Este enlace no contiene una invitación válida.'); return; }
+  try{
+    const res = await fetch(`${API_URL}?action=getInvitation&id=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if(!data.ok || !data.invitacion){ showFatal('No pudimos encontrar esta invitación. Verifica el enlace recibido.'); return; }
+    invitation = data.invitacion;
+    rsvpOpen = data.rsvpAbierto !== false;
+    document.getElementById('familyName').textContent = invitation.familia || 'Nuestra familia';
+    renderGuests();
+    applyStatus();
+    document.getElementById('loading').classList.add('hide');
+    document.getElementById('app').classList.remove('hidden');
+    createDots();
+    updateNav();
+  }catch(e){
+    showFatal('No pudimos cargar la invitación. Intenta nuevamente.');
+  }
+}
+function showFatal(msg){
+  document.getElementById('loading').innerHTML = `<div style="padding:30px;text-align:center;max-width:380px"><h2 style="font-family:Georgia,serif;color:#17364a">Carlos & Yohana</h2><p style="line-height:1.6;color:#6d7778">${msg}</p></div>`;
+}
+function renderGuests(){
+  const list = document.getElementById('guestList');
+  list.innerHTML = '';
+  (invitation.asistentes || []).forEach((g,i)=>{
+    const label = document.createElement('label');
+    label.className='choice';
+    const checked = g.asiste === 'Sí' ? 'checked' : '';
+    label.innerHTML = `<input class="guest" type="checkbox" value="${escapeHtml(g.nombre)}" ${checked}><div><strong>${escapeHtml(g.nombre)}</strong><span>${escapeHtml(g.tipo || '')}</span></div>`;
+    list.appendChild(label);
+  });
+}
+function escapeHtml(v){
+  return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+function applyStatus(){
+  const status = invitation.estado || 'Pendiente';
+  const existing = document.getElementById('existingStatus');
+  if(!rsvpOpen){
+    document.getElementById('rsvpOpen').classList.add('hidden');
+    document.getElementById('rsvpClosed').classList.remove('hidden');
+  }
+  if(status === 'Confirmado'){
+    existing.textContent = `Asistencia confirmada: ${invitation.confirmados || 0} persona(s).`;
+    existing.classList.remove('hidden');
+    unlockPostRsvp('si', '¡Qué alegría saber que nos acompañarán! Estamos muy felices de poder compartir este día tan especial con ustedes.');
+  }else if(status === 'No asistirá'){
+    existing.textContent = 'Ya registramos que no podrán acompañarnos.';
+    existing.classList.remove('hidden');
+    unlockPostRsvp('no', 'Gracias por hacernos saber. Aunque no puedan acompañarnos, los tendremos presentes en este día tan especial.');
+  }
+}
+function unlockPostRsvp(answer,message){
+  maxPage = 6;
+  document.getElementById('finalTitle').textContent = answer === 'si' ? '¡Nos vemos en la boda!' : 'Gracias por hacernos saber';
+  document.getElementById('finalMessage').textContent = message;
+  if(answer !== 'si'){
+    document.getElementById('surprisePrompt').textContent = 'La invitación seguirá aquí para ustedes, con mucho cariño.';
+    document.getElementById('seeSurprise').classList.add('hidden');
+  }else{
+    document.getElementById('surprisePrompt').textContent = 'Y todavía tenemos algo más que compartir con ustedes…';
+    document.getElementById('seeSurprise').classList.remove('hidden');
+  }
+  createDots();
+}
+function openEnvelope(){
+  document.getElementById('envelope').classList.add('open');
+  setTimeout(()=>go(1),1150);
+}
+function go(n){
+  n=Math.max(0,Math.min(n,maxPage));
+  if(n===current)return;
+  const old=current;
+  pages[old].classList.remove('active','left','right');
+  pages[old].classList.add(n>old?'left':'right');
+  pages[n].classList.remove('left','right');
+  requestAnimationFrame(()=>pages[n].classList.add('active'));
+  current=n;
+  if(current===0) document.getElementById('envelope').classList.remove('open');
+  updateNav();
+}
+function next(){ if(current<maxPage) go(current+1); }
+function prev(){ if(current>0) go(current-1); }
+function createDots(){
+  const box=document.getElementById('dots'); box.innerHTML='';
+  for(let i=0;i<=maxPage;i++){
+    const d=document.createElement('button'); d.className='dot'; d.setAttribute('aria-label',`Página ${i+1}`); d.onclick=()=>go(i); box.appendChild(d);
+  }
+  updateNav();
+}
+function updateNav(){
+  const nav=document.getElementById('nav');
+  nav.classList.toggle('dark',pages[current].classList.contains('navy'));
+  document.getElementById('prev').disabled=current===0;
+  document.getElementById('next').disabled=current===maxPage;
+  [...document.querySelectorAll('.dot')].forEach((d,i)=>d.classList.toggle('active',i===current));
+}
+function resetRsvp(){
+  document.getElementById('rsvpChoice').classList.remove('hidden');
+  document.getElementById('rsvpYes').classList.add('hidden');
+  document.getElementById('rsvpNo').classList.add('hidden');
+  document.getElementById('rsvpError').textContent='';
+}
+async function saveRsvp(answer, selected, button){
+  button.disabled=true;
+  const old=button.textContent;
+  button.textContent='Guardando…';
+  try{
+    const res=await fetch(API_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({codigo:invitation.codigo,respuesta:answer,seleccionados:selected})
+    });
+    const data=await res.json();
+    if(!data.ok) throw new Error(data.mensaje || data.error || 'No pudimos guardar la respuesta.');
+    const result=data.resultado || {};
+    invitation.estado=answer==='si'?'Confirmado':'No asistirá';
+    unlockPostRsvp(answer,result.mensaje || '');
+    createDots();
+    go(5);
+  }catch(e){
+    document.getElementById('rsvpError').textContent=e.message || 'No pudimos guardar la respuesta.';
+    if(answer==='no') alert(e.message || 'No pudimos guardar la respuesta.');
+  }finally{
+    button.disabled=false; button.textContent=old;
+  }
+}
+function updateCountdown(){
+  let diff=Math.max(0,WEDDING_DATE-Date.now());
+  const d=Math.floor(diff/86400000); diff%=86400000;
+  const h=Math.floor(diff/3600000); diff%=3600000;
+  const m=Math.floor(diff/60000); const s=Math.floor((diff%60000)/1000);
+  document.getElementById('days').textContent=String(d).padStart(2,'0');
+  document.getElementById('hours').textContent=String(h).padStart(2,'0');
+  document.getElementById('minutes').textContent=String(m).padStart(2,'0');
+  document.getElementById('seconds').textContent=String(s).padStart(2,'0');
+}
+function updateReception(){
+  const open=Date.now()>=RECEPTION_UNLOCK.getTime();
+  document.getElementById('receptionLocked').classList.toggle('hidden',open);
+  document.getElementById('receptionRevealed').classList.toggle('hidden',!open);
+}
+
+document.getElementById('openInvitation').onclick=openEnvelope;
+document.getElementById('prev').onclick=prev;
+document.getElementById('next').onclick=next;
+document.getElementById('yesStart').onclick=()=>{
+  document.getElementById('rsvpChoice').classList.add('hidden');
+  document.getElementById('rsvpYes').classList.remove('hidden');
+};
+document.getElementById('noStart').onclick=()=>{
+  document.getElementById('rsvpChoice').classList.add('hidden');
+  document.getElementById('rsvpNo').classList.remove('hidden');
+};
+document.querySelectorAll('.backRsvp').forEach(b=>b.onclick=resetRsvp);
+document.getElementById('confirmYes').onclick=function(){
+  const selected=[...document.querySelectorAll('.guest:checked')].map(x=>x.value);
+  if(!selected.length){document.getElementById('rsvpError').textContent='Selecciona al menos una persona que asistirá.';return;}
+  document.getElementById('rsvpError').textContent='';
+  saveRsvp('si',selected,this);
+};
+document.getElementById('confirmNo').onclick=function(){saveRsvp('no',[],this)};
+document.getElementById('seeSurprise').onclick=()=>go(6);
+
+document.getElementById('app').addEventListener('touchstart',e=>{
+  touchX=e.changedTouches[0].screenX; touchY=e.changedTouches[0].screenY;
+},{passive:true});
+document.getElementById('app').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].screenX-touchX, dy=e.changedTouches[0].screenY-touchY;
+  if(Math.abs(dx)<60 || Math.abs(dy)>Math.abs(dx))return;
+  if(dx<0) next(); else prev();
+},{passive:true});
+
+updateCountdown(); updateReception();
+setInterval(updateCountdown,1000);
+setInterval(updateReception,30000);
+loadInvitation();
+</script>
+</body>
+</html>
