@@ -97,8 +97,16 @@
     .hidden{display:none!important}
 
     .surprise{position:relative;overflow:hidden}
-    .reception-page{align-items:flex-start;padding-top:max(28px,env(safe-area-inset-top));}
-    .reception-page .content{margin:0 auto auto;}
+    .reception-page{
+      display:block;
+      padding-top:28px;
+      padding-bottom:110px;
+      min-height:100dvh;
+    }
+    .reception-page .content{
+      width:min(100%,430px);
+      margin:0 auto;
+    }
     .surprise:before,.surprise:after{content:"✦";position:absolute;color:rgba(183,154,99,.35);font-size:30px;animation:float 3s ease-in-out infinite}
     .surprise:before{top:12%;left:10%}.surprise:after{right:12%;bottom:15%;animation-delay:1.2s}
     @keyframes float{50%{transform:translateY(-8px) rotate(12deg)}}
@@ -218,7 +226,7 @@
 
   <section class="page navy surprise" data-page="5">
     <div class="content">
-      <p class="eyebrow">Una sorpresa más</p>
+      <p id="finalEyebrow" class="eyebrow">Una sorpresa más</p>
       <h2 id="finalTitle">Gracias por responder</h2>
       <p id="finalMessage" class="copy"></p>
       <div class="line"></div>
@@ -338,6 +346,7 @@ function unlockPostRsvp(answer,message){
   const changeBtn=document.getElementById('changeRsvp');
   if(answer === 'si'){
     maxPage = 6;
+    document.getElementById('finalEyebrow').textContent = 'Una sorpresa más';
     document.getElementById('finalTitle').textContent = '¡Nos vemos en la boda!';
     document.getElementById('finalMessage').textContent = message || '¡Qué alegría saber que nos acompañarán! Estamos muy felices de poder compartir este día tan especial con ustedes.';
     document.getElementById('surprisePrompt').textContent = 'Y todavía tenemos algo más que compartir con ustedes…';
@@ -345,6 +354,7 @@ function unlockPostRsvp(answer,message){
     changeBtn.classList.add('hidden');
   }else{
     maxPage = 5;
+    document.getElementById('finalEyebrow').textContent = '';
     document.getElementById('finalTitle').textContent = 'Gracias por hacernos saber';
     document.getElementById('finalMessage').textContent = 'Gracias por avisarnos. Esperamos poder celebrar juntos en otra ocasión.';
     document.getElementById('surprisePrompt').textContent = rsvpOpen
@@ -357,7 +367,7 @@ function unlockPostRsvp(answer,message){
 }
 function openEnvelope(){
   document.getElementById('envelope').classList.add('open');
-  setTimeout(()=>go(1),2400);
+  setTimeout(()=>go(1),3800);
 }
 function go(n){
   n=Math.max(0,Math.min(n,maxPage));
