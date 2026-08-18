@@ -267,7 +267,7 @@
         <div class="lock">♡</div>
         <div class="label">Un último detalle</div>
         <p class="copy" style="font-size:16px;margin-top:8px">Queremos guardar un poquito de la sorpresa para ese día.</p>
-        <p class="small">La ubicación estará disponible 40 minutos después de iniciada la ceremonia religiosa.</p>
+        
       </div>
 
       <div id="receptionRevealed" class="cardbox reveal hidden">
@@ -311,6 +311,10 @@ function codeFromUrl(){
 async function loadInvitation(){
   const code = codeFromUrl();
   if(!code){ showFatal('Este enlace no contiene una invitación válida.'); return; }
+  document.getElementById('loading').classList.add('hide');
+  document.getElementById('app').classList.remove('hidden');
+  createDots();
+  updateNav();
   try{
     const res = await fetch(`${API_URL}?action=getInvitation&id=${encodeURIComponent(code)}`);
     const data = await res.json();
@@ -320,8 +324,6 @@ async function loadInvitation(){
     document.getElementById('familyName').textContent = invitation.familia || 'Nuestra familia';
     renderGuests();
     applyStatus();
-    document.getElementById('loading').classList.add('hide');
-    document.getElementById('app').classList.remove('hidden');
     createDots();
     updateNav();
   }catch(e){
@@ -427,6 +429,7 @@ async function saveRsvp(answer, selected, button){
   button.disabled=true;
   const old=button.textContent;
   button.textContent='Guardando…';
+
   try{
     const res=await fetch(API_URL,{
       method:'POST',
@@ -435,16 +438,17 @@ async function saveRsvp(answer, selected, button){
     });
     const data=await res.json();
     if(!data.ok) throw new Error(data.mensaje || data.error || 'No pudimos guardar la respuesta.');
+
     const result=data.resultado || {};
     invitation.estado=answer==='si'?'Confirmado':'No asistirá';
     unlockPostRsvp(answer,result.mensaje || '');
     createDots();
     go(5);
   }catch(e){
-    document.getElementById('rsvpError').textContent=e.message || 'No pudimos guardar la respuesta.';
-    if(answer==='no') alert(e.message || 'No pudimos guardar la respuesta.');
+    document.getElementById('rsvpError').textContent=(e.message || 'No pudimos guardar la respuesta.')+' Intenta nuevamente.';
   }finally{
-    button.disabled=false; button.textContent=old;
+    button.disabled=false;
+    button.textContent=old;
   }
 }
 function updateCountdown(){
