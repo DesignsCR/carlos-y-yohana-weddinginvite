@@ -124,6 +124,26 @@
     .nav.dark .dot{background:rgba(255,255,255,.3)}.nav.dark .dot.active{background:#d8c49b}
     .status{padding:12px 16px;border-radius:15px;background:#edf0e8;color:#4d604f;font-size:13px;line-height:1.45;margin:18px 0}
     .closed{padding:18px;border-radius:18px;background:#efe7dc;color:#665a50;margin:20px 0;font-size:14px;line-height:1.55}
+
+    /* Reception: mobile-first override */
+    .page.reception-page{
+      display:block !important;
+      align-items:initial !important;
+      justify-content:initial !important;
+      overflow-y:auto !important;
+      padding:0 22px 110px !important;
+      background:linear-gradient(155deg,#e5e9df,var(--ivory));
+    }
+    .page.reception-page .content{
+      display:block !important;
+      width:100% !important;
+      max-width:430px !important;
+      margin:0 auto !important;
+      padding-top:34px !important;
+      transform:none !important;
+    }
+    .page.reception-page .eyebrow{margin-top:0}
+
     @media(min-width:700px){body:before{content:"";position:fixed;inset:0;background:#e8e2d8;z-index:-1}.app{max-width:480px;margin:auto;box-shadow:0 0 50px rgba(0,0,0,.12)}}
   </style>
 </head>
@@ -236,7 +256,7 @@
     </div>
   </section>
 
-  <section class="page sage surprise reception-page" data-page="6">
+  <section class="page sage reception-page" data-page="6">
     <div class="content">
       <p class="eyebrow">La celebración continúa</p>
       <h2>Nos vemos después de la ceremonia</h2>
