@@ -282,6 +282,22 @@
     </div>
   </section>
 
+  <section class="page sand gift-page" data-page="7">
+    <div class="content">
+      <p class="eyebrow">Un detalle con cariño</p>
+      <h2>Su presencia es nuestro mejor regalo</h2>
+      <p class="copy">Si desean tener un detalle con nosotros, pueden hacerlo en efectivo o por SINPE Móvil.</p>
+      <div class="cardbox" style="margin-top:25px">
+        <div class="label">SINPE Móvil</div>
+        <div class="value" style="font-size:30px;letter-spacing:.08em">64087479</div>
+        <p class="small" style="margin:8px 0 0">Yohana Campos Vargas</p>
+        <button id="copySinpe" class="btn primary" type="button">Copiar número</button>
+        <div id="copyStatus" class="small" style="min-height:20px;margin-top:8px"></div>
+      </div>
+      <p class="copy" style="font-size:16px">Gracias por acompañarnos y ser parte de este momento tan especial.</p>
+    </div>
+  </section>
+
   <nav id="nav" class="nav">
     <button id="prev" class="arrow" aria-label="Anterior">‹</button>
     <div id="dots" class="dots"></div>
@@ -367,7 +383,7 @@ function applyStatus(){
 function unlockPostRsvp(answer,message){
   const changeBtn=document.getElementById('changeRsvp');
   if(answer === 'si'){
-    maxPage = 6;
+    maxPage = 7;
     document.getElementById('finalEyebrow').textContent = 'Una sorpresa más';
     document.getElementById('finalTitle').textContent = '¡Nos vemos en la boda!';
     document.getElementById('finalMessage').textContent = message || '¡Qué alegría saber que nos acompañarán! Estamos muy felices de poder compartir este día tan especial con ustedes.';
@@ -485,6 +501,14 @@ document.getElementById('confirmYes').onclick=function(){
   saveRsvp('si',selected,this);
 };
 document.getElementById('seeSurprise').onclick=()=>go(6);
+document.getElementById('copySinpe').onclick=async function(){
+  const number='64087479', status=document.getElementById('copyStatus');
+  try{await navigator.clipboard.writeText(number);status.textContent='Número copiado ✓';}
+  catch(e){
+    const t=document.createElement('textarea');t.value=number;document.body.appendChild(t);
+    t.select();document.execCommand('copy');t.remove();status.textContent='Número copiado ✓';
+  }
+};
 document.getElementById('changeRsvp').onclick=()=>{
   if(!rsvpOpen) return;
   maxPage=4;
