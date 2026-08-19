@@ -145,9 +145,37 @@
     .page.reception-page .eyebrow{margin-top:0}
 
     @media(min-width:700px){body:before{content:"";position:fixed;inset:0;background:#e8e2d8;z-index:-1}.app{max-width:480px;margin:auto;box-shadow:0 0 50px rgba(0,0,0,.12)}}
+
+    /* Music control */
+    .music-control{
+      position:fixed;
+      z-index:30;
+      top:calc(14px + env(safe-area-inset-top));
+      right:14px;
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      border:1px solid rgba(23,54,74,.18);
+      background:rgba(251,248,241,.9);
+      color:var(--navy);
+      box-shadow:0 7px 20px rgba(23,54,74,.13);
+      display:none;
+      place-items:center;
+      font-size:19px;
+      line-height:1;
+      backdrop-filter:blur(8px);
+    }
+    .music-control.show{display:grid}
+    .music-control.playing{background:var(--navy);color:var(--ivory);border-color:var(--navy)}
   </style>
 </head>
 <body>
+
+<audio id="weddingMusic" preload="auto" loop>
+  <source src="Perfect_Ed_Sheeran_Wedding_Edit.mp3" type="audio/mpeg">
+</audio>
+<button id="musicControl" class="music-control" type="button" aria-label="Pausar música" title="Música">♫</button>
+
 <div id="loading" class="loading"><div class="spinner"></div><div class="small">Preparando tu invitación…</div></div>
 <main id="app" class="app hidden">
 
@@ -311,6 +339,42 @@ const WEDDING_DATE = new Date('2026-12-12T13:30:00-06:00');
 const CEREMONY_WAZE = 'https://waze.com/ul/hd1u0y7fbs';
 const RECEPTION_UNLOCK = new Date('2026-12-12T14:10:00-06:00');
 
+const weddingMusic = document.getElementById('weddingMusic');
+const musicControl = document.getElementById('musicControl');
+let musicStarted = false;
+
+function updateMusicControl(){
+  const playing = !weddingMusic.paused;
+  musicControl.classList.toggle('playing', playing);
+  musicControl.setAttribute('aria-label', playing ? 'Pausar música' : 'Reproducir música');
+  musicControl.title = playing ? 'Pausar música' : 'Reproducir música';
+  musicControl.textContent = playing ? '♫' : '♪';
+}
+
+async function startWeddingMusic(){
+  if(musicStarted && !weddingMusic.paused) return;
+  musicStarted = true;
+  musicControl.classList.add('show');
+  try{
+    await weddingMusic.play();
+  }catch(e){
+    // If a browser blocks playback, the control remains available for a manual tap.
+  }
+  updateMusicControl();
+}
+
+musicControl.addEventListener('click', async ()=>{
+  try{
+    if(weddingMusic.paused) await weddingMusic.play();
+    else weddingMusic.pause();
+  }catch(e){}
+  updateMusicControl();
+});
+
+weddingMusic.addEventListener('play', updateMusicControl);
+weddingMusic.addEventListener('pause', updateMusicControl);
+
+
 let invitation = null;
 let rsvpOpen = true;
 let current = 0;
@@ -404,6 +468,7 @@ function unlockPostRsvp(answer,message){
   createDots();
 }
 function openEnvelope(){
+  startWeddingMusic();
   document.getElementById('envelope').classList.add('open');
   setTimeout(()=>go(1),3800);
 }
